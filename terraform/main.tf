@@ -6,19 +6,13 @@ resource "aws_guardduty_detector" "this" {
   enable = true
 }
 
-
-
-# ─────────────────────────────────────────────
 # Data sources
-# ─────────────────────────────────────────────
 
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# ─────────────────────────────────────────────
 # VPC
-# ─────────────────────────────────────────────
 
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
@@ -31,9 +25,7 @@ resource "aws_vpc" "main" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Internet Gateway
-# ─────────────────────────────────────────────
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
@@ -44,9 +36,7 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Public Subnets
-# ─────────────────────────────────────────────
 
 resource "aws_subnet" "public" {
   count = length(var.public_subnet_cidrs)
@@ -63,9 +53,7 @@ resource "aws_subnet" "public" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Private Subnets
-# ─────────────────────────────────────────────
 
 resource "aws_subnet" "private" {
   count = length(var.private_subnet_cidrs)
@@ -81,9 +69,7 @@ resource "aws_subnet" "private" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Elastic IP + NAT Gateway (one per public subnet)
-# ─────────────────────────────────────────────
 
 resource "aws_eip" "nat" {
   count  = length(var.public_subnet_cidrs)
@@ -109,9 +95,7 @@ resource "aws_nat_gateway" "main" {
   depends_on = [aws_internet_gateway.main]
 }
 
-# ─────────────────────────────────────────────
 # Public Route Table
-# ─────────────────────────────────────────────
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
@@ -134,9 +118,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# ─────────────────────────────────────────────
 # Private Route Tables (one per AZ / NAT GW)
-# ─────────────────────────────────────────────
 
 resource "aws_route_table" "private" {
   count  = length(var.private_subnet_cidrs)
@@ -160,9 +142,7 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private[count.index].id
 }
 
-# ─────────────────────────────────────────────
 # AMI – Amazon Linux 2023 (latest)
-# ─────────────────────────────────────────────
 
 data "aws_ami" "al2023" {
   most_recent = true
@@ -179,9 +159,7 @@ data "aws_ami" "al2023" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Security Groups
-# ─────────────────────────────────────────────
 
 # Instance A – Frontend (Vote :5000, Result :4000, SSH)
 resource "aws_security_group" "frontend" {
@@ -307,10 +285,7 @@ resource "aws_security_group" "database" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Instance A – Frontend (ASG across public subnets)
-# ─────────────────────────────────────────────
-
 resource "aws_launch_template" "frontend" {
   name_prefix   = "${var.project_name}-frontend-lt-"
   image_id      = data.aws_ami.al2023.id
@@ -364,10 +339,8 @@ resource "aws_autoscaling_group" "frontend" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Instance B – Backend: Redis + Worker (.NET)
 # Deployed in private subnet AZ-1
-# ─────────────────────────────────────────────
 
 resource "aws_instance" "backend" {
   ami           = data.aws_ami.al2023.id
@@ -383,10 +356,7 @@ resource "aws_instance" "backend" {
   }
 }
 
-# ─────────────────────────────────────────────
 # Instance C – Database: PostgreSQL (primary)
-# Deployed in private subnet AZ-1
-# ─────────────────────────────────────────────
 
 resource "aws_instance" "database" {
   ami           = data.aws_ami.al2023.id
