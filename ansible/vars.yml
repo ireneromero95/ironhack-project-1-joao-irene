@@ -1,0 +1,5 @@
+#Not sure about this
+
+docker_user: ubuntu
+redis_host: backend-instance
+db_host: db-instance
