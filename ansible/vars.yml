@@ -1,8 +1,8 @@
 #Not sure about this
 
 docker_user: ubuntu
-redis_host: "{{ hostvars ['backend']['ansible_host']}}"
-db_host: "{{ hostvars ['database']['ansible_host']}}"
+redis_host: "{{ hostvars ['backend-instance-1']['ansible_host']}}"
+db_host: "{{ hostvars ['database-1']['ansible_host']}}"
 
 db_user: postgres
-db_passworkd: password
+db_password: password

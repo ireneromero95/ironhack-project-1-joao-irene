@@ -45,11 +45,11 @@
     - name: Run Worker Container (.NET)
       docker_container:
         name: worker
-        image: your-dockerhub/worker:latest
+        image: ireneromero95/worker:latest
         state: started
         env:
           REDIS_HOST: 'localhost' # Same instance
-          DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
+          DB_HOST: "{{ groups['database'][0] }}"
 
 #Frontend
 - name: Deploy Frontend Services
@@ -59,19 +59,20 @@
     - name: Run Vote App (Python)
       docker_container:
         name: vote
-        image: your-dockerhub/vote:latest
+        image: ireneromero95/vote:latest
         state: started
         ports:
           - '5000:80'
         env:
-          REDIS_HOST: "{{ hostvars['backend_instance']['ansible_host'] }}"
+          REDIS_HOST: "{{ groups['backend'][0] }}"
 
     - name: Run Result App (Node.js)
       docker_container:
         name: result
-        image: your-dockerhub/result:latest
+        image: ireneromero95/result:latest
         state: started
         ports:
           - '4000:80'
         env:
-          DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
+          DB_HOST: "{{ groups['database'][0] }}"
+#  DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
