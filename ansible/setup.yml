@@ -27,12 +27,36 @@
         image: postgres:15-alpine
         state: started
         restart_policy: always
+        #WE ADD THIS
+        ports:
+          - '5432:5432'
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_PASSWORD: 'password'
           POSTGRES_DB: 'postgres'
 
 #Backend
+
+# - name: Deploy Backend Services
+#   hosts: backend
+#   become: true
+#   tasks:
+#     - name: Run Redis Container
+#       docker_container:
+#         name: redis
+#         image: redis:alpine
+#         state: started
+#         ports:
+#           - '6379:6379'
+
+#     - name: Run Worker Container (.NET)
+#       docker_container:
+#         name: worker
+#         image: ireneromero95/worker:latest
+#         state: started
+#         env:
+#           REDIS_HOST: 'localhost' # Same instance
+#           DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
 
 - name: Deploy Backend Services
   hosts: backend
@@ -43,6 +67,7 @@
         name: redis
         image: redis:alpine
         state: started
+        restart_policy: always
         ports:
           - '6379:6379'
 
@@ -51,8 +76,10 @@
         name: worker
         image: ireneromero95/worker:latest
         state: started
+        # recreate: yes
+        restart_policy: always
         env:
-          REDIS_HOST: 'localhost' # Same instance
+          REDIS_HOST: 'redis'
           DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
 
 #Frontend
