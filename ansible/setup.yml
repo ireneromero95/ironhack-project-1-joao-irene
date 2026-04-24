@@ -79,7 +79,7 @@
         # recreate: yes
         restart_policy: always
         env:
-          REDIS_HOST: 'redis'
+          REDIS_HOST: 'localhost'
           DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
 
 #Frontend
