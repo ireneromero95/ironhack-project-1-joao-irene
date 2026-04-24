@@ -4,5 +4,5 @@ frontend-instance-1
 [backend]
 backend-instance-1
  
-[db]
-db-instance-1
+[database]
+database-1
