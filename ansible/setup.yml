@@ -115,7 +115,7 @@
         ports:
           - "4000:80"
         env:
-          DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
+          DB_HOST: "{{ hostvars['db-instance-1']['ansible_host'] }}"
           DB_USER: "postgres"
           DB_PASSWORD: "password"
           DB_NAME: "postgres"

@@ -1,15 +1,13 @@
 [frontend]
-frontend-instance-1 ansible_host=44.198.61.209
-
+frontend-instance-1
 
 [backend]
-backend-instance-1 ansible_host=10.20.11.181
+backend-instance-1
 
 [database]
-database-1 ansible_host=10.20.11.232
+db-instance-1
 
 [all:vars]
 ansible_user=ubuntu
-ansible_ssh_private_key_file=./joao-irene-useast1.pem
-# THE FIX: This creates the SSH tunnel automatically
-ansible_ssh_common_args='-o ProxyCommand="ssh -i ./joao-irene-useast1.pem -W %h:%p -q ubuntu@52.87.170.228"'
+ansible_ssh_private_key_file=/home/joaoribeiro/.ssh/joao-irene-useast1.pem
+ansible_ssh_common_args=-o StrictHostKeyChecking=no
