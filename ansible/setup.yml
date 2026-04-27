@@ -9,91 +9,98 @@
           - python3-pip
         state: present
         update_cache: yes
-
     - name: Start Docker service
       service:
         name: docker
         state: started
         enabled: yes
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
 
-#Database
+# ─── DATABASE INSTANCE ────────────────────────────────────────────────────────
 - name: Deploy PostgreSQL
   hosts: database
   become: true
   tasks:
+    - name: Create db-network
+      docker_network:
+        name: db-network
+        state: present
+
     - name: Run Postgres Container
       docker_container:
         name: db
         image: postgres:15-alpine
         state: started
         restart_policy: always
-        #WE ADD THIS
+        networks:
+          - name: db-network
         ports:
-          - '5432:5432'
+          - "5432:5432"      
         env:
-          POSTGRES_USER: 'postgres'
-          POSTGRES_PASSWORD: 'password'
-          POSTGRES_DB: 'postgres'
+          POSTGRES_USER: "postgres"
+          POSTGRES_PASSWORD: "password"
+          POSTGRES_DB: "postgres"
 
-#Backend
-
-# - name: Deploy Backend Services
-#   hosts: backend
-#   become: true
-#   tasks:
-#     - name: Run Redis Container
-#       docker_container:
-#         name: redis
-#         image: redis:alpine
-#         state: started
-#         ports:
-#           - '6379:6379'
-
-#     - name: Run Worker Container (.NET)
-#       docker_container:
-#         name: worker
-#         image: ireneromero95/worker:latest
-#         state: started
-#         env:
-#           REDIS_HOST: 'localhost' # Same instance
-#           DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
-
+# ─── BACKEND INSTANCE ─────────────────────────────────────────────────────────
 - name: Deploy Backend Services
   hosts: backend
   become: true
   tasks:
+    - name: Create back-network
+      docker_network:
+        name: back-network
+        state: present
+
     - name: Run Redis Container
       docker_container:
         name: redis
         image: redis:alpine
         state: started
         restart_policy: always
+        networks:
+          - name: back-network
         ports:
-          - '6379:6379'
+          - "6379:6379"      
 
     - name: Run Worker Container (.NET)
       docker_container:
         name: worker
         image: ireneromero95/worker:latest
         state: started
-        # recreate: yes
         restart_policy: always
+        networks:
+          - name: back-network
         env:
-          REDIS_HOST: 'localhost'
-          DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
+          REDIS_HOST: "redis"
+          DB_HOST: "{{ hostvars['db-instance-1']['ansible_host'] }}"
+          DB_USER: "postgres"
+          DB_PASSWORD: "password"
+          DB_NAME: "postgres"
 
-#Frontend
+# ─── FRONTEND INSTANCE ────────────────────────────────────────────────────────
 - name: Deploy Frontend Services
   hosts: frontend
   become: true
   tasks:
+    - name: Create front-network
+      docker_network:
+        name: front-network
+        state: present
+
     - name: Run Vote App (Python)
       docker_container:
         name: vote
         image: ireneromero95/vote:latest
         state: started
+        restart_policy: always
+        networks:
+          - name: front-network
         ports:
-          - '5000:80'
+          - "5000:80"
         env:
           REDIS_HOST: "{{ hostvars['backend-instance-1']['ansible_host'] }}"
 
@@ -102,7 +109,13 @@
         name: result
         image: ireneromero95/result:latest
         state: started
+        restart_policy: always
+        networks:
+          - name: front-network
         ports:
-          - '4000:80'
+          - "4000:80"
         env:
           DB_HOST: "{{ hostvars['database-1']['ansible_host'] }}"
+          DB_USER: "postgres"
+          DB_PASSWORD: "password"
+          DB_NAME: "postgres"
