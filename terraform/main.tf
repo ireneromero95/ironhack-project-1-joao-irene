@@ -161,128 +161,128 @@ data "aws_ami" "ubuntu" {
 # Security Groups
 
 # Instance A – Frontend (Vote :5000, Result :4000, SSH)
-resource "aws_security_group" "frontend" {
-  name        = "${var.project_name}-sg-frontend"
-  description = "Allow HTTP traffic to Vote and Result services plus SSH"
-  vpc_id      = aws_vpc.main.id
+ resource "aws_security_group" "frontend" {
+   name        = "${var.project_name}-sg-frontend"
+   description = "Allow HTTP traffic to Vote and Result services plus SSH"
+   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description = "Vote app (Flask)"
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+   ingress {
+     description = "Vote app (Flask)"
+     from_port   = 5000
+     to_port     = 5000
+     protocol    = "tcp"
+     cidr_blocks = ["0.0.0.0/0"]
+   }
 
-  ingress {
-    description = "Result app (Node.js)"
-    from_port   = 4000
-    to_port     = 4000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+   ingress {
+     description = "Result app (Node.js)"
+     from_port   = 4000
+     to_port     = 4000
+     protocol    = "tcp"
+     cidr_blocks = ["0.0.0.0/0"]
+   }
 
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+   ingress {
+     description = "SSH"
+     from_port   = 22
+     to_port     = 22
+     protocol    = "tcp"
+     cidr_blocks = ["0.0.0.0/0"]
+   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+   egress {
+     from_port   = 0
+     to_port     = 0
+     protocol    = "-1"
+     cidr_blocks = ["0.0.0.0/0"]
+   }
 
-  tags = {
-    Name    = "${var.project_name}-sg-frontend"
-    Project = var.project_name
-    Tier    = "frontend"
-  }
+   tags = {
+     Name    = "${var.project_name}-sg-frontend"
+     Project = var.project_name
+     Tier    = "frontend"
+   }
 }
 
-# Instance B – Backend (Redis :6379, Worker – internal only)
-resource "aws_security_group" "backend" {
-  name        = "${var.project_name}-sg-backend"
-  description = "Allow Redis from frontend and SSH from VPC"
-  vpc_id      = aws_vpc.main.id
+# # Instance B – Backend (Redis :6379, Worker – internal only)
+ resource "aws_security_group" "backend" {
+   name        = "${var.project_name}-sg-backend"
+   description = "Allow Redis from frontend and SSH from VPC"
+   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description     = "Redis from frontend"
-    from_port       = 6379
-    to_port         = 6379
-    protocol        = "tcp"
-    security_groups = [aws_security_group.frontend.id]
-  }
+   ingress {
+     description     = "Redis from frontend"
+     from_port       = 6379
+     to_port         = 6379
+     protocol        = "tcp"
+     security_groups = [aws_security_group.frontend.id]
+   }
 
-  ingress {
-    description = "SSH from VPC"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-  }
+   ingress {
+     description = "SSH from VPC"
+     from_port   = 22
+     to_port     = 22
+     protocol    = "tcp"
+     cidr_blocks = [var.vpc_cidr]
+   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+   egress {
+     from_port   = 0
+     to_port     = 0
+     protocol    = "-1"
+     cidr_blocks = ["0.0.0.0/0"]
+   }
 
-  tags = {
-    Name    = "${var.project_name}-sg-backend"
-    Project = var.project_name
-    Tier    = "backend"
-  }
-}
+   tags = {
+     Name    = "${var.project_name}-sg-backend"
+     Project = var.project_name
+     Tier    = "backend"
+   }
+ }
 
-# Instance C – Database (PostgreSQL :5432 from backend and frontend)
-resource "aws_security_group" "database" {
-  name        = "${var.project_name}-sg-database"
-  description = "Allow PostgreSQL from backend and frontend tiers"
-  vpc_id      = aws_vpc.main.id
+# # Instance C – Database (PostgreSQL :5432 from backend and frontend)
+ resource "aws_security_group" "database" {
+   name        = "${var.project_name}-sg-database"
+   description = "Allow PostgreSQL from backend and frontend tiers"
+   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description     = "PostgreSQL from backend"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.backend.id]
-  }
+   ingress {
+     description     = "PostgreSQL from backend"
+     from_port       = 5432
+     to_port         = 5432
+     protocol        = "tcp"
+     security_groups = [aws_security_group.backend.id]
+   }
 
-  ingress {
-    description     = "PostgreSQL from frontend (Result reads DB)"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.frontend.id]
-  }
+   ingress {
+     description     = "PostgreSQL from frontend (Result reads DB)"
+     from_port       = 5432
+     to_port         = 5432
+     protocol        = "tcp"
+     security_groups = [aws_security_group.frontend.id]
+   }
 
-  ingress {
-    description = "SSH from VPC"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-  }
+   ingress {
+     description = "SSH from VPC"
+     from_port   = 22
+     to_port     = 22
+     protocol    = "tcp"
+     cidr_blocks = [var.vpc_cidr]
+   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+   egress {
+     from_port   = 0
+     to_port     = 0
+     protocol    = "-1"
+     cidr_blocks = ["0.0.0.0/0"]
+   }
 
-  tags = {
-    Name    = "${var.project_name}-sg-database"
-    Project = var.project_name
-    Tier    = "database"
-  }
-}
+   tags = {
+     Name    = "${var.project_name}-sg-database"
+     Project = var.project_name
+     Tier    = "database"
+   }
+ }
 
 # --- INSTANCE A: Launch Template for ASG (Frontend) ---
 resource "aws_launch_template" "frontend" {
@@ -311,6 +311,8 @@ resource "aws_launch_template" "frontend" {
     create_before_destroy = true
   }
 }
+
+#Frontend
 
 resource "aws_autoscaling_group" "frontend" {
   name                = "${var.project_name}-asg-frontend"
@@ -398,4 +400,43 @@ resource "aws_dynamodb_table" "tf_lock" {
     name = "LockID"
     type = "S"
   }
+}
+
+module "frontend" {
+  source = "./modules/instance"
+
+  has_public_ip = true
+  # ami
+  # instance_type
+  # security_group
+  # subnet
+  # tags = {
+  #   Name = "frontend-joao-irene"
+  # }
+}
+
+module "backend" {
+  source = "./modules/instance"
+
+  has_public_ip = false
+  # ami
+  # instance_type
+  # security_group
+  # subnet
+  # tags = {
+  #   Name = "frontend-joao-irene"
+  # }
+}
+
+module "database" {
+  source = "./modules/instance"
+
+  has_public_ip = false
+  # ami
+  # instance_type
+  # security_group
+  # subnet
+  # tags = {
+  #   Name = "frontend-joao-irene"
+  # }
 }

@@ -10,6 +10,7 @@ variable "project_name" {
   default     = "project-1-joao-irene"
 }
 
+#Taken
 variable "vpc_cidr" {
   description = "CIDR block for the VPC."
   type        = string
