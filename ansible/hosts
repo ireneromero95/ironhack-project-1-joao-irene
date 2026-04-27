@@ -1,11 +1,11 @@
 [frontend]
-frontend-instance-1
+frontend-instance-1 ansible_host=44.198.61.209
 
 [backend]
-backend-instance-1
+backend-instance-1 private_ip=10.20.11.181
 
 [database]
-db-instance-1
+db-instance-1 private_ip=10.20.11.232
 
 [all:vars]
 ansible_user=ubuntu

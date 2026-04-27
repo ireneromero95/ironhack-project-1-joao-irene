@@ -76,7 +76,7 @@
           - name: back-network
         env:
           REDIS_HOST: "redis"
-          DB_HOST: "{{ hostvars['db-instance-1']['ansible_host'] }}"
+          DB_HOST: "{{ hostvars['db-instance-1']['private_ip'] }}"
           DB_USER: "postgres"
           DB_PASSWORD: "password"
           DB_NAME: "postgres"
@@ -102,7 +102,7 @@
         ports:
           - "5000:80"
         env:
-          REDIS_HOST: "{{ hostvars['backend-instance-1']['ansible_host'] }}"
+          REDIS_HOST: "{{ hostvars['backend-instance-1']['private_ip'] }}"
 
     - name: Run Result App (Node.js)
       docker_container:
@@ -115,7 +115,7 @@
         ports:
           - "4000:80"
         env:
-          DB_HOST: "{{ hostvars['db-instance-1']['ansible_host'] }}"
+          DB_HOST: "{{ hostvars['db-instance-1']['private_ip'] }}"
           DB_USER: "postgres"
           DB_PASSWORD: "password"
           DB_NAME: "postgres"
