@@ -1,12 +1,5 @@
 
-#GuardDuty thing
-
-resource "aws_guardduty_detector" "this" {
-  count  = var.enable_guardduty ? 1 : 0
-  enable = true
-}
-
-# Data sources
+ #Data sources
 
 data "aws_availability_zones" "available" {
   state = "available"
@@ -314,69 +307,68 @@ resource "aws_launch_template" "frontend" {
 
 #Frontend
 
-resource "aws_autoscaling_group" "frontend" {
-  name                = "${var.project_name}-asg-frontend"
-  desired_capacity    = 1
-  min_size            = 1
-  max_size            = 2
-  vpc_zone_identifier = aws_subnet.public[*].id
+# resource "aws_autoscaling_group" "frontend" {
+#   name                = "${var.project_name}-asg-frontend"
+#   desired_capacity    = 1
+#   min_size            = 1
+#   max_size            = 2
+#   vpc_zone_identifier = aws_subnet.public[*].id
 
-  launch_template {
-    id      = aws_launch_template.frontend.id
-    version = "$Latest"
-  }
+#   launch_template {
+#     id      = aws_launch_template.frontend.id
+#     version = "$Latest"
+#   }
 
-  tag {
-    key                 = "Name"
-    value               = "${var.project_name}-asg-frontend"
-    propagate_at_launch = false
-  }
+#   tag {
+#     key                 = "Name"
+#     value               = "${var.project_name}-asg-frontend"
+#     propagate_at_launch = false
+#   }
 
-  tag {
-    key                 = "Project"
-    value               = var.project_name
-    propagate_at_launch = true
-  }
+#   tag {
+#     key                 = "Project"
+#     value               = var.project_name
+#     propagate_at_launch = true
+#   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
 
-# --- INSTANCE B: Backend (Redis + Worker) ---
-resource "aws_instance" "backend" {
-  # Alterado de data.aws_ami.al2023.id para o data source do Ubuntu
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.private[0].id
+# # --- INSTANCE B: Backend (Redis + Worker) ---
+# resource "aws_instance" "backend" {
+#   ami           = data.aws_ami.ubuntu.id
+#   instance_type = var.instance_type
+#   subnet_id     = aws_subnet.private[0].id
 
-  key_name = "joao-irene-useast1"
+#   key_name = "joao-irene-useast1"
 
-  vpc_security_group_ids = [aws_security_group.backend.id]
+#   vpc_security_group_ids = [aws_security_group.backend.id]
 
-  tags = {
-    Name    = "${var.project_name}-instance-b-backend"
-    Project = var.project_name
-    Tier    = "backend"
-  }
-}
+#   tags = {
+#     Name    = "${var.project_name}-instance-b-backend"
+#     Project = var.project_name
+#     Tier    = "backend"
+#   }
+# }
 
-# --- INSTANCE C: Database (PostgreSQL) ---
-resource "aws_instance" "database" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.private[0].id
+# # --- INSTANCE C: Database (PostgreSQL) ---
+# resource "aws_instance" "database" {
+#   ami           = data.aws_ami.ubuntu.id
+#   instance_type = var.instance_type
+#   subnet_id     = aws_subnet.private[0].id
 
-  key_name = "joao-irene-useast1"
+#   key_name = "joao-irene-useast1"
 
-  vpc_security_group_ids = [aws_security_group.database.id]
+#   vpc_security_group_ids = [aws_security_group.database.id]
 
-  tags = {
-    Name    = "${var.project_name}-instance-c-database"
-    Project = var.project_name
-    Tier    = "database"
-  }
-}
+#   tags = {
+#     Name    = "${var.project_name}-instance-c-database"
+#     Project = var.project_name
+#     Tier    = "database"
+#   }
+# }
 
 #Creating state
 resource "aws_s3_bucket" "tf_state" {
@@ -403,40 +395,34 @@ resource "aws_dynamodb_table" "tf_lock" {
 }
 
 module "frontend" {
-  source = "./modules/instance"
-
-  has_public_ip = true
-  # ami
-  # instance_type
-  # security_group
-  # subnet
-  # tags = {
-  #   Name = "frontend-joao-irene"
-  # }
+  source         = "./modules/instance"
+  has_public_ip  = true
+  ami            = data.aws_ami.ubuntu.id
+  instance_type  = var.instance_type
+  security_group = aws_security_group.frontend.id  
+  subnet         = aws_subnet.public[0].id          
+  key_name       = "joao-irene-useast1"   
+  tags           = { Name = "frontend-joao-irene" }
 }
 
 module "backend" {
-  source = "./modules/instance"
-
-  has_public_ip = false
-  # ami
-  # instance_type
-  # security_group
-  # subnet
-  # tags = {
-  #   Name = "frontend-joao-irene"
-  # }
+  source         = "./modules/instance"
+  has_public_ip  = false
+  ami            = data.aws_ami.ubuntu.id
+  instance_type  = var.instance_type
+  security_group = aws_security_group.backend.id  
+  subnet         = aws_subnet.private[0].id
+  key_name       = "joao-irene-useast1"   
+  tags           = { Name = "backend-joao-irene" }
 }
 
 module "database" {
-  source = "./modules/instance"
-
-  has_public_ip = false
-  # ami
-  # instance_type
-  # security_group
-  # subnet
-  # tags = {
-  #   Name = "frontend-joao-irene"
-  # }
+  source         = "./modules/instance"
+  has_public_ip  = false
+  ami            = data.aws_ami.ubuntu.id
+  instance_type  = var.instance_type
+  security_group = aws_security_group.database.id  
+  subnet         = aws_subnet.private[0].id   
+  key_name       = "joao-irene-useast1"   
+  tags           = { Name = "database-joao-irene" }
 }
