@@ -31,7 +31,9 @@
       docker_network:
         name: db-network
         state: present
-
+    - name: Create pgdata volume
+      docker_volume:
+        name: pgdata-joao-irene
     - name: Run Postgres Container
       docker_container:
         name: db
@@ -46,6 +48,8 @@
           POSTGRES_USER: 'postgres'
           POSTGRES_PASSWORD: 'password'
           POSTGRES_DB: 'postgres'
+        volumes:
+          - pgdata-joao-irene:/var/lib/postgresql/data
 
 # ─── BACKEND INSTANCE ─────────────────────────────────────────────────────────
 - name: Deploy Backend Services

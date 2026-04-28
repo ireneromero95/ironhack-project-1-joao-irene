@@ -34,8 +34,3 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
-
-variable "enable_guardduty" {
-  type    = bool
-  default = false
-}
